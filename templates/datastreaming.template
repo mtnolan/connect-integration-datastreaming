@@ -396,8 +396,6 @@ Resources:
           Ref: PrivateSubnetID
   FireHoseCTRStreamLogGroup:
     Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: /aws/kinesisfirehose/connect-ctr-to-rs
   FirehoseCTRStreamLogS3:
     Type: AWS::Logs::LogStream
     Properties:
@@ -454,8 +452,6 @@ Resources:
             Ref: FirehoseCTRStreamLogRS
   FireHoseCTRATTRStreamLogGroup:
     Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: /aws/kinesisfirehose/connect-ctr-attr-to-rs
   FirehoseCTRATTRStreamLogS3:
     Type: AWS::Logs::LogStream
     Properties:
