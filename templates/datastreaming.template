@@ -196,6 +196,8 @@ Resources:
           Action:
           - sts:AssumeRole
       Path: /
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
   FirehoseS3Policy:
     Type: AWS::IAM::Policy
     Properties:
@@ -226,6 +228,8 @@ Resources:
         - Effect: Allow
           Action:
           - logs:PutLogEvents
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
           Resource:
           - Fn::Sub: arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/kinesisfirehose/${FireHoseCTRStream}:log-stream:*
           - Fn::Sub: arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/kinesisfirehose/${FireHoseCTRATTRStream}:log-stream:*
@@ -390,6 +394,20 @@ Resources:
         - Ref: RedshiftTblCreatorSG
         SubnetIds:
           Ref: PrivateSubnetID
+  FireHoseCTRStreamLogGroup:
+    Type: AWS::Logs::LogGroup
+  FirehoseCTRStreamLogS3:
+    Type: AWS::Logs::LogStream
+    Properties:
+      LogGroupName:
+        Ref: FireHoseCTRStreamLogGroup
+      LogStreamName: S3Delivery
+  FirehoseCTRStreamLogRS:
+    Type: AWS::Logs::LogStream
+    Properties:
+      LogGroupName:
+        Ref: FireHoseCTRStreamLogGroup
+      LogStreamName: RedshiftDelivery
   FireHoseCTRStream:
     Type: AWS::KinesisFirehose::DeliveryStream
     DependsOn:
@@ -416,14 +434,36 @@ Resources:
             SizeInMBs: 1
           CloudWatchLoggingOptions:
             Enabled: true
-            LogGroupName: connect-ctr-to-rs
-            LogStreamName: RedshiftDelivery
+            LogGroupName:
+              Ref: FireHoseCTRStreamLogGroup
+            LogStreamName:
+              Ref: FirehoseCTRStreamLogS3
           CompressionFormat: UNCOMPRESSED
           Prefix: ctr-
           RoleARN:
             Fn::GetAtt: FirehoseRole.Arn
         Username:
           Ref: DBUser
+        CloudWatchLoggingOptions:
+          Enabled: true
+          LogGroupName:
+            Ref: FireHoseCTRStreamLogGroup
+          LogStreamName:
+            Ref: FirehoseCTRStreamLogRS
+  FireHoseCTRATTRStreamLogGroup:
+    Type: AWS::Logs::LogGroup
+  FirehoseCTRATTRStreamLogS3:
+    Type: AWS::Logs::LogStream
+    Properties:
+      LogGroupName:
+        Ref: FireHoseCTRATTRStreamLogGroup
+      LogStreamName: S3Delivery
+  FirehoseCTRATTRStreamLogRS:
+    Type: AWS::Logs::LogStream
+    Properties:
+      LogGroupName:
+        Ref: FireHoseCTRATTRStreamLogGroup
+      LogStreamName: RedshiftDelivery
   FireHoseCTRATTRStream:
     Type: AWS::KinesisFirehose::DeliveryStream
     DependsOn:
@@ -450,14 +490,22 @@ Resources:
             SizeInMBs: 5
           CloudWatchLoggingOptions:
             Enabled: true
-            LogGroupName: connect-ctr-attr-to-rs
-            LogStreamName: RedshiftDelivery
+            LogGroupName:
+              Ref: FireHoseCTRATTRStreamLogGroup
+            LogStreamName:
+              Ref: FirehoseCTRATTRStreamLogS3
           CompressionFormat: UNCOMPRESSED
           Prefix: ctr_attr-
           RoleARN:
             Fn::GetAtt: FirehoseRole.Arn
         Username:
           Ref: DBUser
+        CloudWatchLoggingOptions:
+          Enabled: true
+          LogGroupName:
+            Ref: FireHoseCTRATTRStreamLogGroup
+          LogStreamName:
+            Ref: FirehoseCTRATTRStreamLogRS
   KinesisStream:
     Type: AWS::Kinesis::Stream
     DependsOn:
