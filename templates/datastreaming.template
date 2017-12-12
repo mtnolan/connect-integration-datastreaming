@@ -196,8 +196,6 @@ Resources:
           Action:
           - sts:AssumeRole
       Path: /
-      ManagedPolicyArns:
-      - arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
   FirehoseS3Policy:
     Type: AWS::IAM::Policy
     Properties:
@@ -228,7 +226,6 @@ Resources:
         - Effect: Allow
           Action:
           - logs:PutLogEvents
-          - logs:CreateLogGroup
           - logs:CreateLogStream
           Resource:
           - Fn::Sub: arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/kinesisfirehose/${FireHoseCTRStream}:log-stream:*
