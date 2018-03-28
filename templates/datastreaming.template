@@ -108,7 +108,7 @@ Parameters:
     Description: S3 bucket name for the Quick Start assets. This string can include
       numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start
       or end with a hyphen (-)
-    Default: quickstart-reference
+    Default: aws-quickstart
     Type: String
   QSS3KeyPrefix:
     AllowedPattern: ^[0-9a-zA-Z-/]*$
@@ -118,7 +118,7 @@ Parameters:
       can include numbers, lowercase letters, uppercase letters, hyphens (-), and
       forward slash (/)
     Type: String
-    Default: connect/integration/datastreaming/latest/
+    Default: connect-integration-datastreaming/
   VPCID:
     Description: Select an existing VPC where you would like to provision your Redshift
       Cluster
