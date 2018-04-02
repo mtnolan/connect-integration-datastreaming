@@ -5,6 +5,6 @@ This integration enables Amazon Connect to communicate with Amazon Kinesis and A
 
 ![Architecture for data streaming integration](https://d0.awsstatic.com/partner-network/QuickStart/connect/connect-integration-datastreaming-architecture.png)
 
-For details and launch information, see the [data sheet](https://aws.amazon.com/quickstart/connect/data-streaming/).
+For details and launch information, see the [data sheet](https://fwd.aws/KWN3A).
 
 To post feedback, submit feature ideas, or report bugs, use the **Issues** section of this GitHub repo.
