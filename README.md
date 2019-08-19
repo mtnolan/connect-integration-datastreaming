@@ -10,5 +10,5 @@ For details and launch information, see the [data sheet](https://fwd.aws/KWN3A).
 To post feedback, submit feature ideas, or report bugs, use the **Issues** section of this GitHub repo.
 
 
-## Perficient Notes
-Requires setup of a VPC with private and public subnets.  Redshift should be hosted in the public subnet and Lambda functions will be hosted in the private subnet.  The Private subnets route table should have a path to 0.0.0.0/0 to a NAT Gateway hosted in the public subnet.
+## Notes
+Requires setup of a VPC with private and public subnets.  Redshift should be hosted in the public subnet and Lambda functions will be hosted in the private subnet.  The Private subnets route table should have a path to 0.0.0.0/0 to a NAT Gateway hosted in the public subnet.  This is so the Lambda function can reach the Cloudformation service (for custom resource) and to reach Redshift.
