@@ -12,82 +12,83 @@
 // # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 // # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // # -----------------------------------------------------------------------------------------
-'use strict';
+const AWS = require('aws-sdk');
 
-var ctr_streams = ['connect-ctr-to-rs'];
-var attribute_streams = ['connect-ctr-attr-to-rs'];
-var AWS = require('aws-sdk');
-var firehose = new AWS.Firehose();
+const { CTR_STREAM, CTR_ATTR_STREAM } = process.env;
+
+const ctrStreams = [CTR_STREAM];
+const attributeStreams = [CTR_ATTR_STREAM];
+const firehose = new AWS.Firehose();
 
 console.log('Loading function');
 
 exports.handler = (event, context, callback) => {
-    console.log('Received event:', JSON.stringify(event, null, 2));
+  console.log('Received event:', JSON.stringify(event, null, 2));
 
-    var transformAttributes = (ctr) => {
-        var attributes = [];
+  const transformAttributes = (ctr) => {
+    const attributes = [];
 
-        for (var key in ctr.Attributes) {
-            attributes.push({
-                'AttributeKey': key,
-                'AttributeValue': ctr.Attributes[key],
-                'ContactId': ctr.ContactId,
-                'AWSAccountId': ctr.AWSAccountId,
-                'InitiationTimestamp': ctr.InitiationTimestamp,
-                'DisconnectTimestamp': ctr.DisconnectTimestamp,
-                'LastUpdateTimestamp': ctr.LastUpdateTimestamp,
-                'InstanceARN': ctr.InstanceARN,
-                'InitialContactId': ctr.InitialContactId
-            });
-        }
-        return attributes;
+    const attributeKeys = Object.keys(ctr.Attributes);
+    attributeKeys.forEach((key) => attributes.push({
+      AttributeKey: key,
+      AttributeValue: ctr.Attributes[key],
+      ContactId: ctr.ContactId,
+      AWSAccountId: ctr.AWSAccountId,
+      InitiationTimestamp: ctr.InitiationTimestamp,
+      DisconnectTimestamp: ctr.DisconnectTimestamp,
+      LastUpdateTimestamp: ctr.LastUpdateTimestamp,
+      InstanceARN: ctr.InstanceARN,
+      InitialContactId: ctr.InitialContactId,
+    }));
+
+    return attributes;
+  };
+
+  const putRecords = (stream, records) => {
+    const params = {
+      DeliveryStreamName: stream,
+      Records: [],
     };
+    records.forEach((record) => {
+      params.Records.push({ Data: JSON.stringify(record) });
+    });
 
-    var putRecords = (stream, records) => {
-        var params = {
-            DeliveryStreamName: stream,
-            Records: []
-        };
-        records.forEach((record) => {
-            params.Records.push({ Data: JSON.stringify(record) });
-        });
+    return firehose.putRecordBatch(params).promise();
+  };
 
-        return firehose.putRecordBatch(params).promise();
-    };
+  const processRecords = (records, position) => {
+    if (position >= records.length) {
+      callback(null, `Successfully processed ${position} records.`);
+      return;
+    }
+    const record = records[position];
 
-    var processRecords = (records, position) => {
-        if (position >= records.length) {
-            callback(null, `Successfully processed ${position} records.`);
-            return;
-        }
-        const record = records[position];
+    const payload = new Buffer(record.kinesis.data, 'base64').toString('ascii');
+    console.log('Decoded payload:', payload);
 
-        const payload = new Buffer(record.kinesis.data, 'base64').toString('ascii');
-        console.log('Decoded payload:', payload);
+    const ctr = JSON.parse(payload);
+    const attributes = transformAttributes(ctr);
 
-        const ctr = JSON.parse(payload);
-        const attributes = transformAttributes(ctr);
+    const promises = [];
 
-        var promises = [];
+    ctrStreams.forEach((stream) => {
+      promises.push(putRecords(stream, [ctr]));
+    });
 
-        ctr_streams.forEach((stream) => {
-            promises.push(putRecords(stream, [ctr]));
-        });
+    if (attributes.length > 0) {
+      attributeStreams.forEach((stream) => {
+        promises.push(putRecords(stream, attributes));
+      });
+    }
 
-        if (attributes.length > 0) {
-            attribute_streams.forEach((stream) => {
-                promises.push(putRecords(stream, attributes));
-            });
-        }
+    Promise.all(promises).then((values) => {
+      console.log('Wrote to streams: ', JSON.stringify(values));
+      processRecords(records, position + 1);
+    }).catch((reason) => {
+      console.log('Failed to process record: ', payload, reason);
+      callback(reason, `Failed to process record ${position}`);
+    });
+  };
 
-        Promise.all(promises).then(values => {
-            console.log('Wrote to streams: ', JSON.stringify(values));
-            processRecords(records, position + 1);
-        }).catch(reason => {
-            console.log('Failed to process record: ', payload, reason)
-            callback(reason, `Failed to process record ${position}`);
-        });
-    };
-
-    processRecords(event.Records, 0);
+  processRecords(event.Records, 0);
 };

@@ -8,3 +8,7 @@ This integration enables Amazon Connect to communicate with Amazon Kinesis and A
 For details and launch information, see the [data sheet](https://fwd.aws/KWN3A).
 
 To post feedback, submit feature ideas, or report bugs, use the **Issues** section of this GitHub repo.
+
+
+## Perficient Notes
+Requires setup of a VPC with private and public subnets.  Redshift should be hosted in the public subnet and Lambda functions will be hosted in the private subnet.  The Private subnets route table should have a path to 0.0.0.0/0 to a NAT Gateway hosted in the public subnet.
