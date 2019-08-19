@@ -138,6 +138,10 @@ Parameters:
     Description: IP Address for NAT Gateway
     Type: String
 
+  Stage:
+    Description: Environment (dev, integ, staging, prod, etc...)
+    Type: String
+
 Rules:
   RegionSupport:
     Assertions:
@@ -447,6 +451,8 @@ Resources:
 
   ConnectFirehoseCTRToRSLogGroup:
     Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/kinesisfirehose/connect-integration-datastreaming-ctr-to-rs-${Stage}'
 
   ConnectFirehoseCTRToRSLogS3:
     Type: AWS::Logs::LogStream
@@ -497,6 +503,8 @@ Resources:
 
   ConnectFirehoseCTRAttrToRSLogGroup:
     Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/kinesisfirehose/connect-integration-datastreaming-ctr-attr-to-rs-${Stage}'
 
   ConnectFirehoseCTRAttrToRSLogS3:
     Type: AWS::Logs::LogStream

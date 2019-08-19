@@ -11,4 +11,5 @@ sam deploy \
   NATGatewayIP=$NAT_Gateway_IP \
   DBUser=$DB_USER \
   DBPwd=$DB_PASSWORD \
+  Stage=$STAGE \
   --profile $PROFILE
