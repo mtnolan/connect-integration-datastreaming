@@ -1,5 +1,5 @@
 {
-  "name": "redshift table maker",
+  "name": "redshift-table-maker",
   "version": "1.0.0",
   "description": "",
   "main": "tblcreate.js",
